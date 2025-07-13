@@ -15,14 +15,15 @@ load_dotenv()
 
 def get_llm() -> ChatGoogleGenerativeAI:
     """Get the language model."""
-    
+
+    # Check if the Google API key is set in the environment variables
     if not os.getenv("GOOGLE_API_KEY"):
         raise ValueError("You must set GOOGLE_API_KEY in your .env")
 
-    # Instantiate the free Gemini model
+    # Create a ChatGoogleGenerativeAI instance with the specified model and temperature
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
-        temperature=0.1,
+        temperature=0.2,
     )
     return llm
 
@@ -30,7 +31,11 @@ def get_llm() -> ChatGoogleGenerativeAI:
 def get_database() -> SQLDatabase:
     """Get the SQL database connection."""
 
-    db_uri = os.getenv("DATABASE_URL") # mysql+pymysql://root:YourRootPassword@localhost/atliq_tshirts
+    # Load the database URI from environment variables
+    # Example: DATABASE_URL=mysql+pymysql://root:YourRootPassword@localhost/database_name
+    db_uri = os.getenv("DATABASE_URL")
+
+    # Check if the database URI is set
     if db_uri is None:
         raise ValueError("Missing DATABASE_URL in environment")
 
@@ -42,6 +47,8 @@ def get_database() -> SQLDatabase:
 def get_example_selector() -> SemanticSimilarityExampleSelector:
     """Get the example selector for few-shot learning."""
 
+    # Create a vector store from the few-shot examples
+    # This will be used to select the most relevant examples based on semantic similarity
     embrddings= HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     to_vectorize = [" ".join(example.values()) for example in few_shots]
     vectorstore= Chroma.from_texts(
@@ -61,44 +68,32 @@ def get_example_selector() -> SemanticSimilarityExampleSelector:
 def get_sql_database_chain() -> SQLDatabaseChain:
     """Get the SQL database chain with few-shot learning."""
 
-    mysql_prompt = """You are a MySQL expert. Given an input question, first create a syntactically correct MySQL query to run, then look at the results of the query and return the answer to the input question.
-    Unless the user specifies in the question a specific number of examples to obtain, query for at most {top_k} results using the LIMIT clause as per MySQL. You can order the results to return the most informative data in the database.
-    Never query for all columns from a table. You must query only the columns that are needed to answer the question. Wrap each column name in backticks (`) to denote them as delimited identifiers.
-    Pay attention to use only the column names you can see in the tables below. Be careful to not query for columns that do not exist. Also, pay attention to which column is in which table.
-    Pay attention to use CURDATE() function to get the current date, if the question involves "today".
-
-    Use the following format:
-
-    Question: Question here
-    SQLQuery: Query to run with no pre-amble
-    SQLResult: Result of the SQLQuery
-    Answer: Final answer here.
-
-    No pre-amble.
-    """
-
+    # Define the example prompt template
     example_prompt = PromptTemplate(
         input_variables=["Question", "SQLQuery", "SQLResult","Answer",],
         template="\nQuestion: {Question}\nSQLQuery: {SQLQuery}\nSQLResult: {SQLResult}\nAnswer: {Answer}",
     )
 
+    # Get the example selector, LLM, and database
+    # These are used to create the few-shot prompt and the SQLDatabaseChain
     example_selector= get_example_selector()
     llm= get_llm()
     db= get_database()
-
+    
+    # Create the FewShotPromptTemplate with the example selector and example prompt
+    # The prefix and suffix are used to format the input for the LLM
     few_shot_prompt = FewShotPromptTemplate(
         example_selector= example_selector,
         example_prompt=example_prompt,
-        prefix=mysql_prompt,
+        prefix=_mysql_prompt,
         suffix=PROMPT_SUFFIX,
         input_variables=["input", "table_info", "top_k"], #These variables are used in the prefix and suffix
     )
 
-    
-
+    # Create the SQLDatabaseChain with the LLM, database, and prompt
     chain= SQLDatabaseChain.from_llm(
-        llm=llm,
-        db=db,
+        llm,
+        db,
         prompt=few_shot_prompt,
         verbose=True,
     )
@@ -112,7 +107,7 @@ if __name__ == "__main__":
     chain = get_sql_database_chain()
 
     # Example query
-    query = "What is the total number of Adidas t-shirts?"
+    query = "What is the total number of Nike's t-shirts?"
     
     # Run the chain with the query
     response = chain.run(query)
