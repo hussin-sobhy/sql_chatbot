@@ -79,7 +79,7 @@ def get_sql_database_chain() -> SQLDatabaseChain:
     example_selector= get_example_selector()
     llm= get_llm()
     db= get_database()
-    
+
     # Create the FewShotPromptTemplate with the example selector and example prompt
     # The prefix and suffix are used to format the input for the LLM
     few_shot_prompt = FewShotPromptTemplate(
@@ -107,11 +107,13 @@ if __name__ == "__main__":
     chain = get_sql_database_chain()
 
     # Example query
-    query = "What is the total number of Nike's t-shirts?"
+    question = "What is the total number of Nike's t-shirts?"
     
-    # Run the chain with the query
-    response = chain.run(query)
+    # Invoke the chain with the query
+    response = chain.invoke({"query": question})
     
     print(response)
+    #print(chain.input_keys)
+
 
    
