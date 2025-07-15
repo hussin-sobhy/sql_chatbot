@@ -96,7 +96,7 @@ def get_sql_database_chain() -> SQLDatabaseChain:
 
     # Create the SQLDatabaseChain with the LLM, database, and prompt
     chain= SQLDatabaseChain.from_llm(
-        get_llm(), # `get_llm()` returns the ChatGoogleGenerativeAI instance
+        get_groq_llm(), # `get_llm()` returns the ChatGoogleGenerativeAI instance
         get_database(), # `get_database()` returns the SQLDatabase instance
         prompt=few_shot_prompt,
         verbose=True,
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     chain = get_sql_database_chain()
 
     # Example query
-    question = "hom many Nike t-shirts are in stock?"
+    question = "Show the total number of t-shirts available for each brand."
     
     # Invoke the chain with the query
     response = chain.invoke({"query": question})
