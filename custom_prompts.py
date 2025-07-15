@@ -1,3 +1,5 @@
+from langchain.prompts.prompt import PromptTemplate
+
 few_shots = [
     {
         'Question': "How many t-shirts do we have left for Nike in XS size and white color?",
@@ -41,32 +43,42 @@ few_shots = [
     }
 ]
 
+example_prompt= PromptTemplate(
+    input_variables=["Question", "SQLQuery", "SQLResult","Answer",],
+    template="\nQuestion: {Question}\nSQLQuery: {SQLQuery}\nSQLResult: {SQLResult}\nAnswer: {Answer}",
+)
 
-custom_prefix= """You are an expert retail data analyst working with a MySQL database for a clothing store.
 
-Your job is to answer natural language questions about the store’s t-shirt inventory and pricing. You must:
-- Generate a correct MySQL query that uses only the tables and columns shown below.
-- If relevant, calculate total value by multiplying `price` × `stock_quantity`.
-- Apply discounts from the `discounts` table using `pct_discount`, if the question mentions discounts.
-- Use filters like brand, color, or size only if mentioned in the question.
-- Use `LIMIT {top_k}` if the question involves multiple results but no specific count.
-- Wrap all column names in backticks (e.g., `brand`) for MySQL syntax.
-- Use `CURDATE()` if the question includes the word “today.”
 
-- Always follow this format:
+custom_prefix= """
+    Given an input question, first create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
 
-- Question: <the user’s original question>  
-- SQLQuery: <the SQL query you would run>  
-- SQLResult: <result from running the SQL>  
-- Answer: <clear, simple final answer — no extra explanation, no repeating the question>
+    Unless the user specifies a specific number of results, limit your query to at most {top_k} rows using the LIMIT clause.
+
+    Never SELECT all columns. Only query the columns needed to answer the question.
+
+    Only use the column names and tables shown in the schema. Do not guess or invent columns or table names.
+
+    Use CURDATE() if the question refers to "today".
+
+    Use this exact format:
+
+    Here’s how to format your answer:
+
+    Question: How many white Nike t-shirts are in stock?
+    SQLQuery: SELECT sum(`stock_quantity`) FROM `t_shirts` WHERE `brand` = 'Nike' AND `color` = 'White'
+    SQLResult: [(Decimal('208'),)]
+    Answer: 208
+
 """
 
-custumo_suffix= """Only use the following tables and their structure:
+CUSTOM_suffix= """
+    Only use the following tables:
 
-{table_info}
+    {table_info}
 
-Now answer this question using the exact format shown earlier.
-
-Question: {input}
-SQLQuery:
+    Question: {input}
+    Answer:
 """
+
+

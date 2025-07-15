@@ -5,13 +5,29 @@ from langchain_experimental.sql import SQLDatabaseChain
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import FewShotPromptTemplate
-from langchain.prompts.prompt import PromptTemplate
+from langchain.chains.sql_database.prompt import _DEFAULT_TEMPLATE
+from langchain_groq import ChatGroq
 
-from custom_prompts import few_shots, custumo_suffix, custom_prefix
+from custom_prompts import few_shots, CUSTOM_suffix, example_prompt
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+def get_groq_llm() -> ChatGroq:
+    """Get the Groq language model."""
+
+    # Check if the Groq API key is set in the environment variables
+    if not os.getenv("GROQ_API_KEY"):
+        raise ValueError("You must set GROQ_API_KEY in your .env")
+
+    # Create a ChatGroq instance with the specified model and temperature
+    llm = ChatGroq(
+        model="llama3-70b-8192",
+        temperature=0.2,
+    )
+    return llm
+
 
 def get_llm() -> ChatGoogleGenerativeAI:
     """Get the language model."""
@@ -22,7 +38,7 @@ def get_llm() -> ChatGoogleGenerativeAI:
 
     # Create a ChatGoogleGenerativeAI instance with the specified model and temperature
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-pro",
+        model="gemini-2.5-flash",
         temperature=0.2,
     )
     return llm
@@ -39,7 +55,7 @@ def get_database() -> SQLDatabase:
     if db_uri is None:
         raise ValueError("Missing DATABASE_URL in environment")
 
-    db = SQLDatabase.from_uri(db_uri, sample_rows_in_table_info=3)
+    db = SQLDatabase.from_uri(db_uri, sample_rows_in_table_info=0)
 
     return db
 
@@ -68,21 +84,14 @@ def get_example_selector() -> SemanticSimilarityExampleSelector:
 def get_sql_database_chain() -> SQLDatabaseChain:
     """Get the SQL database chain with few-shot learning."""
 
-    # Define the example prompt template
-    example_prompt= PromptTemplate(
-        input_variables=["Question", "SQLQuery", "SQLResult","Answer",],
-        template="\nQuestion: {Question}\nSQLQuery: {SQLQuery}\nSQLResult: {SQLResult}\nAnswer: {Answer}",
-    )
-
-
     # Create the FewShotPromptTemplate with the example selector and example prompt
     # The prefix and suffix are used to format the input for the LLM
     few_shot_prompt = FewShotPromptTemplate(
         example_selector= get_example_selector(), # `get_example_selector()` returns the SemanticSimilarityExampleSelector instance
         example_prompt= example_prompt,
-        prefix= custom_prefix,
-        suffix= custumo_suffix,
-        input_variables=["input", "table_info", "top_k"], #These variables are used in the prefix and suffix
+        prefix= _DEFAULT_TEMPLATE,
+        suffix= CUSTOM_suffix,
+        input_variables=["input", "table_info", "top_k", "dialect"], #These variables are used in the prefix and suffix
     )
 
     # Create the SQLDatabaseChain with the LLM, database, and prompt
@@ -91,7 +100,6 @@ def get_sql_database_chain() -> SQLDatabaseChain:
         get_database(), # `get_database()` returns the SQLDatabase instance
         prompt=few_shot_prompt,
         verbose=True,
-        use_query_checker=True,
     )
 
     return chain
@@ -103,7 +111,7 @@ if __name__ == "__main__":
     chain = get_sql_database_chain()
 
     # Example query
-    question = "What is the total number of nike's t-shirts?"
+    question = "hom many Nike t-shirts are in stock?"
     
     # Invoke the chain with the query
     response = chain.invoke({"query": question})
