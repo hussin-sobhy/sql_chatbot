@@ -5,12 +5,12 @@ from langchain_experimental.sql import SQLDatabaseChain
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import FewShotPromptTemplate
-from langchain.chains.sql_database.prompt import PROMPT_SUFFIX, _mysql_prompt
 from langchain.prompts.prompt import PromptTemplate
 
-from few_shots import few_shots
+from custom_prompts import few_shots, custumo_suffix, custom_prefix
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 def get_llm() -> ChatGoogleGenerativeAI:
@@ -22,7 +22,7 @@ def get_llm() -> ChatGoogleGenerativeAI:
 
     # Create a ChatGoogleGenerativeAI instance with the specified model and temperature
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
+        model="gemini-2.5-pro",
         temperature=0.2,
     )
     return llm
@@ -39,7 +39,7 @@ def get_database() -> SQLDatabase:
     if db_uri is None:
         raise ValueError("Missing DATABASE_URL in environment")
 
-    db = SQLDatabase.from_uri(db_uri)
+    db = SQLDatabase.from_uri(db_uri, sample_rows_in_table_info=3)
 
     return db
 
@@ -69,33 +69,29 @@ def get_sql_database_chain() -> SQLDatabaseChain:
     """Get the SQL database chain with few-shot learning."""
 
     # Define the example prompt template
-    example_prompt = PromptTemplate(
+    example_prompt= PromptTemplate(
         input_variables=["Question", "SQLQuery", "SQLResult","Answer",],
         template="\nQuestion: {Question}\nSQLQuery: {SQLQuery}\nSQLResult: {SQLResult}\nAnswer: {Answer}",
     )
 
-    # Get the example selector, LLM, and database
-    # These are used to create the few-shot prompt and the SQLDatabaseChain
-    example_selector= get_example_selector()
-    llm= get_llm()
-    db= get_database()
 
     # Create the FewShotPromptTemplate with the example selector and example prompt
     # The prefix and suffix are used to format the input for the LLM
     few_shot_prompt = FewShotPromptTemplate(
-        example_selector= example_selector,
-        example_prompt=example_prompt,
-        prefix=_mysql_prompt,
-        suffix=PROMPT_SUFFIX,
+        example_selector= get_example_selector(), # `get_example_selector()` returns the SemanticSimilarityExampleSelector instance
+        example_prompt= example_prompt,
+        prefix= custom_prefix,
+        suffix= custumo_suffix,
         input_variables=["input", "table_info", "top_k"], #These variables are used in the prefix and suffix
     )
 
     # Create the SQLDatabaseChain with the LLM, database, and prompt
     chain= SQLDatabaseChain.from_llm(
-        llm,
-        db,
+        get_llm(), # `get_llm()` returns the ChatGoogleGenerativeAI instance
+        get_database(), # `get_database()` returns the SQLDatabase instance
         prompt=few_shot_prompt,
         verbose=True,
+        use_query_checker=True,
     )
 
     return chain
@@ -107,7 +103,7 @@ if __name__ == "__main__":
     chain = get_sql_database_chain()
 
     # Example query
-    question = "What is the total number of Nike's t-shirts?"
+    question = "What is the total number of nike's t-shirts?"
     
     # Invoke the chain with the query
     response = chain.invoke({"query": question})
