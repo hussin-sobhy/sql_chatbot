@@ -82,9 +82,52 @@ with chat_container:
         st.markdown(chat["answer"])
         st.markdown("---")
 
+# Custom CSS for the footer
+st.markdown("""
+    <style>
+        footer {display: none !important;}
+        .footer-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgb(38,39,47);
+            z-index: 999;
+            padding: 0.8rem;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+        }
+        .main-container {
+            margin-bottom: 80px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Wrap the main content
+st.markdown('<div class="main-container">', unsafe_allow_html=True)
+
+# Display chat history
+with chat_container:
+    for chat in reversed(st.session_state.chat_history):
+        st.markdown("### 🤔 Question")
+        st.markdown(chat["question"])
+        st.markdown("### 💡 Answer")
+        st.markdown(chat["answer"])
+        st.markdown("---")
+
+st.markdown('</div>', unsafe_allow_html=True)
+
 # Footer
 st.markdown("""
-    <div style='position: fixed; bottom: 0; left: 0; right: 0; background-color: #f0f2f6; padding: 1rem; text-align: center;'>
-        <p style='margin: 0;'>Built with ❤️ using Streamlit and LangChain</p>
+    <div class="footer-container">
+        <div class="footer-content">
+            <span style='color: #E2E8F0; font-size: 0.85rem; opacity: 0.8;'>© 2025 SQL Query Assistant</span>
+        </div>
     </div>
 """, unsafe_allow_html=True)
