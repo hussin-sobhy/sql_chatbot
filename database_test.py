@@ -96,7 +96,7 @@ def get_sql_database_chain() -> SQLDatabaseChain:
 
     # Create the SQLDatabaseChain with the LLM, database, and prompt
     chain= SQLDatabaseChain.from_llm(
-        get_groq_llm(), # `get_llm()` returns the ChatGoogleGenerativeAI instance
+        get_llm(), # `get_llm()` returns the ChatGoogleGenerativeAI instance
         get_database(), # `get_database()` returns the SQLDatabase instance
         prompt=few_shot_prompt,
         verbose=True,
