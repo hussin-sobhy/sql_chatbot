@@ -8,7 +8,7 @@ from langchain.prompts import FewShotPromptTemplate
 from langchain.chains.sql_database.prompt import _DEFAULT_TEMPLATE
 from langchain_groq import ChatGroq
 
-from custom_prompts import few_shots, CUSTOM_suffix, example_prompt
+from custom_prompts import few_shots, CUSTOM_suffix, example_prompt, CUSTOM_prefix
 import os
 from dotenv import load_dotenv
 
@@ -89,7 +89,7 @@ def get_sql_database_chain() -> SQLDatabaseChain:
     few_shot_prompt = FewShotPromptTemplate(
         example_selector= get_example_selector(), # `get_example_selector()` returns the SemanticSimilarityExampleSelector instance
         example_prompt= example_prompt,
-        prefix= _DEFAULT_TEMPLATE,
+        prefix= CUSTOM_prefix,
         suffix= CUSTOM_suffix,
         input_variables=["input", "table_info", "top_k", "dialect"], #These variables are used in the prefix and suffix
     )
