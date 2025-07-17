@@ -1,4 +1,4 @@
-from langchain.prompts.prompt import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 few_shots = [
     {
@@ -54,7 +54,26 @@ CUSTOM_suffix= """
     {table_info}
 
     Question: {input}
-    SQLQuery:
 """
 
+CUSTOM_prefix= """
+    You are an expert retail data analyst working with a {dialect} database for a clothing store.
 
+    Your job is to answer natural language questions about the store’s t-shirt inventory and pricing.
+
+    Follow these rules:
+    - Always use only the tables and columns provided in the schema.
+    - If the question asks "how many t-shirts", return the total based on the `stock_quantity` column.
+    - If the question mentions discounts, apply the `pct_discount` from the `discounts` table.
+    - To calculate value, use `price * stock_quantity`, and adjust with discounts if needed.
+    - Use filters like brand, color, or size **only if** mentioned in the question.
+    - Use `LIMIT {top_k}` when the question doesn’t specify how many results to return.
+    - Use `CURDATE()` if the question includes "today".
+    - Never select all columns — only select the columns needed for the answer.
+    - Wrap column names in backticks (e.g., `brand`, `stock_quantity`).
+
+    Respond in the following format:
+
+    Question: the user’s input
+    Answer: a short, clear sentence with the final result, no SQL query.
+"""
