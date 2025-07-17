@@ -23,6 +23,7 @@ env/
 # Database
 *.sqlite3
 *.db
+chroma_fewshots_db/
 
 # Node
 node_modules/

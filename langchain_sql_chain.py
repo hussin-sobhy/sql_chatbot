@@ -8,7 +8,7 @@ from langchain.prompts import FewShotPromptTemplate
 from langchain.chains.sql_database.prompt import _DEFAULT_TEMPLATE
 from langchain_groq import ChatGroq
 
-from custom_prompts import few_shots, CUSTOM_suffix, example_prompt
+from prompts import few_shots, CUSTOM_suffix, example_prompt
 import os
 from dotenv import load_dotenv
 
