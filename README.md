@@ -28,7 +28,7 @@ SQL Query Assistant bridges the gap between business users and complex databases
 
 ## Demo
 
-![Demo](demo.gif)
+![Demo](./media/sql_chatbot_demo.mp4)
 
 ---
 
