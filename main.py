@@ -167,7 +167,16 @@ if submit_button and user_input.strip():
             st.rerun()
             
         except Exception as e:
-            st.error(f"Error processing your query: {str(e)}")
+
+            error_str = str(e)
+
+            # extract natural language answer from the error string
+            if "Answer:" in error_str:
+                extracted_answer = error_str.split("Answer:")[-1].strip().split("]")[0].strip()
+                st.error(extracted_answer)
+            else:
+                # Default fallback if no clean answer found
+                st.error("Error processing your query. Please make sure it's related to the t-shirt inventory.")
 
 # Custom CSS for the footer
 st.markdown("""
