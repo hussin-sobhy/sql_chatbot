@@ -26,9 +26,11 @@ SQL Query Assistant bridges the gap between business users and complex databases
 
 ---
 
-## Demo
+## 📽️ Demo
 
-![Demo](./media/demo.gif)
+   ### Check the media folder
+
+(Video) soon.....
 
 ---
 
