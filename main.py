@@ -1,9 +1,3 @@
-# Patch PyTorch to prevent Streamlit's module introspection from crashing
-# This sets a dummy __path__._path on torch.classes to satisfy Streamlit's module watcher
-import torch
-if not hasattr(torch.classes, "__path__"):
-    torch.classes.__path__ = []
-
 import streamlit as st
 from langchain_sql_chain import get_sql_database_chain
 
@@ -19,22 +13,67 @@ st.set_page_config(
 # Custom CSS for modern, minimal design
 st.markdown("""
     <style>
-    .stTextInput > div > div > input {
-        background-color: #f0f2f6;
+    /* Style for text input and text area */
+    .stTextInput > div > div > input, div[data-baseweb="textarea"] > div {
+        background-color: #262730;
+        color: #ffffff;
+        border: 2px solid rgba(33, 150, 243, 0.1);
+        border-radius: 12px;
+        padding: 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
-    .stButton>button {
+    
+    .stTextInput > div > div > input:focus, div[data-baseweb="textarea"] > div:focus-within {
+        border-color: #2196F3;
+        box-shadow: 0 0 20px rgba(33, 150, 243, 0.2);
+        outline: none;
+        transform: translateY(-2px);
+    }
+    
+    .stTextInput > div > div > input::placeholder, div[data-baseweb="textarea"] textarea::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+        font-style: italic;
+    }
+    
+    /* Additional styling for text area specific elements */
+    div[data-baseweb="textarea"] {
+        background: transparent;
+    }
+    
+    div[data-baseweb="textarea"] textarea {
+        background-color: #262730 !important;
+        color: #ffffff !important;
+        font-size: 1rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    /* Style for the label */
+    .stTextInput label, div[data-baseweb="textarea"] label {
+        color: #89CFF0 !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 0.5rem !important;
+    }
+        .stButton > button {
         background-color: #2196F3;
-        color: white;
-        border-radius: 4px;
-        padding: 0.5rem 2rem;
-        border: none;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-size: 14px;
-        font-weight: 500;
+        color: #ffffff;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        border: 1px solid rgba(33, 150, 243, 0.2);
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background 0.3s ease, transform 0.2s ease;
     }
-    .stButton>button:hover {
+    .stButton > button:hover {
         background-color: #1976D2;
+        transform: translateY(-1px);
+    }
+    .stButton > button:active {
+        transform: translateY(0);
     }
     div.stMarkdown {
         padding: 1rem;
@@ -88,17 +127,12 @@ st.markdown("""
     
 """)
 
-# Initialize session state for chat history
+# Initialize session states
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
 # Create a container for the chat interface
 chat_container = st.container()
-
-# Input field for user question
-with st.form(key='query_form'):
-    user_input = st.text_area("Ask a question about your data:", height=100)
-    submit_button = st.form_submit_button("Get Answer")
 
 # Initialize the SQL chain
 try:
@@ -108,8 +142,19 @@ except Exception as e:
     st.info("Please make sure your environment variables (DATABASE_URL, GOOGLE_API_KEY) are properly set.")
     st.stop()
 
+# Input field for user question - using text_input with dynamic key
+user_input = st.text_area(
+    "Ask a question about your data:",
+    key=f"query_input_{len(st.session_state.chat_history)}",
+    placeholder="Type your question here... (e.g., 'How many t-shirts are in stock?')",
+    height=100
+)
+
+# Submit button
+submit_button = st.button("Get Answer")
+
 # Process the query when submitted
-if submit_button and user_input:
+if submit_button and user_input.strip():
     with st.spinner('Generating response...'):
         try:
             # Get response from the chain
@@ -117,6 +162,9 @@ if submit_button and user_input:
             
             # Add to chat history
             st.session_state.chat_history.append({"question": user_input, "answer": response['result']})
+            
+            # Force a rerun to show the new response and create new input field
+            st.rerun()
             
         except Exception as e:
             st.error(f"Error processing your query: {str(e)}")
