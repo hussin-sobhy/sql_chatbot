@@ -28,9 +28,14 @@ SQL Query Assistant bridges the gap between business users and complex databases
 
 ## 📽️ Demo
 
-   ### Check the media folder
+🎬 [Watch the full demo on Vimeo](https://vimeo.com/1102256061)
 
-(Video) soon.....
+You'll see the full interaction:
+- Clean natural language queries in the UI
+- SQL generated and executed in real time
+- **Live SQL output in the terminal (verbose mode)** — so you can observe how the model reasons and builds queries step by step
+
+> 📸 Also check the `/media` folder for screenshots
 
 ---
 
