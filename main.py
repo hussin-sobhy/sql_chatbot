@@ -176,7 +176,7 @@ if submit_button and user_input.strip():
                 st.error(extracted_answer)
             else:
                 # Default fallback if no clean answer found
-                st.error("Error processing your query. Please make sure it's related to the t-shirt inventory.")
+                st.error("I am a AI ass. Please make sure it's related to the t-shirt inventory.")
 
 # Custom CSS for the footer
 st.markdown("""
@@ -210,7 +210,7 @@ st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
 # Display chat history
 with chat_container:
-    for chat in reversed(st.session_state.chat_history):
+    for chat in st.session_state.chat_history:
         # Query message
         st.markdown("""
             <div class="chat-message query">
