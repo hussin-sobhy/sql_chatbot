@@ -16,13 +16,12 @@ A Streamlit-based assistant that lets you ask natural language questions about y
 - **Semantic similarity retriever**: Uses `all-MiniLM-L6-v2` for understanding your queries.
 - **Few-shot example selector**: Employs ChromaDB to select relevant examples for better SQL generation.
 - **Final answer returned**: You get the answer, not just the SQL query.
-- **Optional FastAPI support**: (Commented in code) for API-based deployments.
 
 ---
 
 ## Project Description
 
-SQL Query Assistant bridges the gap between business users and complex databases. By leveraging advanced language models and semantic retrieval, it allows anyone to query a MySQL database using plain English. The system interprets your question, finds relevant examples, generates the appropriate SQL, executes it, and returns the final answer—all through a simple Streamlit interface. This makes data access fast, intuitive, and accessible to non-technical users.
+SQL Query Assistant bridges the gap between business users and complex databases. Leveraging advanced language models and semantic retrieval, it allows anyone to query a MySQL database using plain English. The system interprets your question, finds relevant examples, generates the appropriate SQL, executes it, and returns the final answer through a simple Streamlit interface. This makes data access fast, intuitive, and accessible to non-technical users.
 
 ---
 
